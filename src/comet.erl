@@ -3,6 +3,7 @@
 -export([
     new_queue/2,
     insert/2,
+    batch_insert/2,
     fetchOne/1,
     fetchN/2,
     delete/2,
@@ -19,7 +20,23 @@ insert(Queue, Value) ->
             erlfdb:transactional(Db, fun(Tx) ->
                 LastIndex = comet_index:last_index(Tx, QueueName),
                 K = erlfdb_tuple:pack({LastIndex+1}, QueueName),
-                erlfdb:set(Db, K, Value)
+                erlfdb:set(Tx, K, Value)
+            end)
+    end.
+batch_insert(Queue, Values) when is_list(Values) ->
+    case Queue of
+        {Db, QueueName} ->
+            erlfdb:transactional(Db, fun(Tx) ->
+                LastIndex = comet_index:last_index(Tx, QueueName),
+                lists:foldl(
+                    fun(E, I) ->
+                        K = erlfdb_tuple:pack({LastIndex+I}, QueueName),
+                        erlfdb:set(Tx, K, E),
+                        I+1
+                    end,
+                    1,
+                    Values
+                )
             end)
     end.
 
