@@ -13,7 +13,9 @@ last_index(DbOrTx, QueueName) ->
     case erlfdb:get_range_startswith(DbOrTx, QueueName, Options) of
         [] -> -1;
         [{K, _}] -> 
-            {Index} = erlfdb_tuple:unpack(K, QueueName),
-            Index
+            case erlfdb_tuple:unpack(K, QueueName) of
+                {Index} -> Index;
+                {Index, _} -> Index
+            end
     end.
 

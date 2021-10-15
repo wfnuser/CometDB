@@ -10,17 +10,39 @@
     rangeDelete/3
 ]).
 
+% FDB_SIZE_LIMIT is 100,000 bytes
+-define(FDB_SIZE_LIMIT, 100000). 
+
 new_queue(ClusterFile, QueueName) -> 
     Db = erlfdb:open(ClusterFile),
     {Db, QueueName}.
+
+insert_by_index(DbOrTx, QueueName, Value, Index) ->
+    if
+        byte_size(Value) > ?FDB_SIZE_LIMIT ->
+            Chunks = split_binary(Value, ?FDB_SIZE_LIMIT),
+            lists:foldl(
+                fun(E, I) ->
+                    K = erlfdb_tuple:pack({Index, I}, QueueName),
+                    erlfdb:set(DbOrTx, K, E),
+                    I+1
+                end,
+                1,
+                Chunks
+            ),
+            K = erlfdb_tuple:pack({erlfdb:decode(<<"chunked">>), Index}, QueueName),
+            erlfdb:set(DbOrTx, K, true);
+        true -> 
+            K = erlfdb_tuple:pack({Index}, QueueName),
+            erlfdb:set(DbOrTx, K, Value)
+    end.
 
 insert(Queue, Value) ->
     case Queue of
         {Db, QueueName} ->
             erlfdb:transactional(Db, fun(Tx) ->
                 LastIndex = comet_index:last_index(Tx, QueueName),
-                K = erlfdb_tuple:pack({LastIndex+1}, QueueName),
-                erlfdb:set(Tx, K, Value)
+                insert_by_index(Tx, QueueName, Value, LastIndex+1)
             end)
     end.
 batch_insert(Queue, Values) when is_list(Values) ->
@@ -29,9 +51,8 @@ batch_insert(Queue, Values) when is_list(Values) ->
             erlfdb:transactional(Db, fun(Tx) ->
                 LastIndex = comet_index:last_index(Tx, QueueName),
                 lists:foldl(
-                    fun(E, I) ->
-                        K = erlfdb_tuple:pack({LastIndex+I}, QueueName),
-                        erlfdb:set(Tx, K, E),
+                    fun(Value, I) ->
+                        insert_by_index(Tx, QueueName, Value, LastIndex+I),
                         I+1
                     end,
                     1,
