@@ -67,7 +67,9 @@ fetchN(Queue, N) ->
                 {limit, N}
             ],
             KVs = erlfdb:get_range_startswith(Db, QueueName, Opts),
-            lists:map(
+            % Unpack All KVs
+            % Blob will be represent as series of {Index, I, V}; which I is the Ith Chunk of Indexth {Key, Value} pair
+            Blobs = lists:map(
                 fun({K, V}) ->
                     case erlfdb_tuple:unpack(K, QueueName) of 
                         {Index} -> {Index, V};
@@ -75,7 +77,22 @@ fetchN(Queue, N) ->
                     end
                 end,
                 KVs
-            )
+            ),
+            % We should combine all the chunks of one blob
+            lists:reverse(lists:foldl(
+                fun(T, Res) -> 
+                    case T of
+                        {Index, V} -> [{Index, V} | Res];
+                        {Index, 1, V} ->  [{Index, V} | Res];
+                        {Index, _, V} -> 
+                            case Res of
+                                [{_, HV} | Remain] -> [{Index, <<HV/binary, V/binary>>} | Remain]
+                            end
+                    end
+                end,
+                [],
+                Blobs
+            ))
     end.
 
 
