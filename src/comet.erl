@@ -11,7 +11,7 @@
 ]).
 
 % FDB_SIZE_LIMIT is 100,000 bytes
--define(FDB_SIZE_LIMIT, 100000). 
+-define(FDB_SIZE_LIMIT, 10). 
 
 new_queue(ClusterFile, QueueName) -> 
     Db = erlfdb:open(ClusterFile),
@@ -20,7 +20,7 @@ new_queue(ClusterFile, QueueName) ->
 insert_by_index(DbOrTx, QueueName, Value, Index) ->
     if
         byte_size(Value) > ?FDB_SIZE_LIMIT ->
-            Chunks = split_binary(Value, ?FDB_SIZE_LIMIT),
+            Chunks = comet_util:split_packet(?FDB_SIZE_LIMIT, Value),
             lists:foldl(
                 fun(E, I) ->
                     K = erlfdb_tuple:pack({Index, I}, QueueName),
@@ -29,9 +29,7 @@ insert_by_index(DbOrTx, QueueName, Value, Index) ->
                 end,
                 1,
                 Chunks
-            ),
-            K = erlfdb_tuple:pack({erlfdb:decode(<<"chunked">>), Index}, QueueName),
-            erlfdb:set(DbOrTx, K, true);
+            );
         true -> 
             K = erlfdb_tuple:pack({Index}, QueueName),
             erlfdb:set(DbOrTx, K, Value)
@@ -71,8 +69,10 @@ fetchN(Queue, N) ->
             KVs = erlfdb:get_range_startswith(Db, QueueName, Opts),
             lists:map(
                 fun({K, V}) ->
-                    {Index} = erlfdb_tuple:unpack(K, QueueName),
-                    {Index, V}
+                    case erlfdb_tuple:unpack(K, QueueName) of 
+                        {Index} -> {Index, V};
+                        {Index, I} -> {Index, I, V}
+                    end
                 end,
                 KVs
             )

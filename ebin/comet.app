@@ -4,6 +4,6 @@
               {registered,[]},
               {applications,[kernel,stdlib,erlfdb]},
               {env,[]},
-              {modules,[comet,comet_index]},
+              {modules,[comet,comet_index,comet_util]},
               {licenses,["Apache 2.0"]},
               {links,[]}]}.
