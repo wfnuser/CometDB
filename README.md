@@ -11,8 +11,12 @@ This project aims to provide you a set of simple interfaces so that you can use 
 * You can insert data of any size; we overcome the size limitation of FDB.
 
 ## TODO
+* type checking
+* stream
 * cursors
 * index
 * priority queue
 * connection management
+* performance
+* tests
 ...
