@@ -4,10 +4,10 @@
     new_queue/2,
     insert/2,
     batch_insert/2,
-    fetchOne/1,
-    fetchN/2,
+    fetch_one/1,
+    fetch/2,
     delete/2,
-    rangeDelete/3
+    range_delete/3
 ]).
 
 % FDB_SIZE_LIMIT is 100,000 bytes
@@ -59,8 +59,8 @@ batch_insert(Queue, Values) when is_list(Values) ->
             end)
     end.
 
-fetchOne(Queue) -> fetchN(Queue, 1).
-fetchN(Queue, N) ->
+fetch_one(Queue) -> fetch(Queue, 1).
+fetch(Queue, N) ->
     case Queue of
         {Db, QueueName} -> 
             Opts = [
@@ -101,7 +101,7 @@ delete(Queue, Key) ->
         {Db, QueueName} -> 
             erlfdb:clear(Db, erlfdb_tuple:pack({Key}, QueueName))
     end.
-rangeDelete(Queue, Start, End) ->
+range_delete(Queue, Start, End) ->
     case Queue of
         {Db, QueueName} -> 
             erlfdb:clear_range(Db, erlfdb_tuple:pack({Start}, QueueName), erlfdb_tuple:pack({End}, QueueName))
