@@ -13,6 +13,8 @@
 % FDB_SIZE_LIMIT is 100,000 bytes
 -define(FDB_SIZE_LIMIT, 10). 
 
+% FoundationDB can only be intiailized once
+% in a give OS process.
 new_queue(ClusterFile, QueueName) -> 
     Db = erlfdb:open(ClusterFile),
     {Db, QueueName}.
