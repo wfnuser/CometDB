@@ -5,11 +5,10 @@
 ]).
 
 last_index(DbOrTx, QueueName) ->
-    Options = [
-        {snapshot, true},
-        {limit, 1},
-        {reverse, true}
-    ],
+    Options = [ {snapshot, true}
+              , {limit, 1}
+              , {reverse, true}
+              ],
     case erlfdb:get_range_startswith(DbOrTx, QueueName, Options) of
         [] -> -1;
         [{K, _}] -> 
@@ -18,4 +17,3 @@ last_index(DbOrTx, QueueName) ->
                 {Index, _} -> Index
             end
     end.
-

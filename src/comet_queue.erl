@@ -62,9 +62,7 @@ batch_insert(Queue, Values) when is_list(Values) ->
 fetch(Queue, N) ->
     case Queue of
         {Db, QueueName} -> 
-            Opts = [
-                {limit, N}
-            ],
+            Opts = [{limit, N}],
             KVs = erlfdb:get_range_startswith(Db, QueueName, Opts),
             % Unpack All KVs
             % Blob will be represent as series of {Index, I, V}; which I is the Ith Chunk of Indexth {Key, Value} pair
@@ -85,7 +83,8 @@ fetch(Queue, N) ->
                         {Index, 1, V} ->  [{Index, V} | Res];
                         {Index, _, V} -> 
                             case Res of
-                                [{_, HV} | Remain] -> [{Index, <<HV/binary, V/binary>>} | Remain]
+                                [{_, HV} | Remain] -> 
+                                    [{Index, <<HV/binary, V/binary>>} | Remain]
                             end
                     end
                 end,
