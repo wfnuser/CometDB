@@ -1,22 +1,15 @@
 -module(comet_queue).
 
--export([
-    new_queue/2,
-    insert/2,
-    batch_insert/2,
-    fetch/2,
-    delete/2,
-    range_delete/3
+-export([ insert/2
+        , batch_insert/2
+        , fetch/2 
+        , delete/2
+        , range_delete/3
 ]).
 
 % FDB_SIZE_LIMIT is 100,000 bytes
 -define(FDB_SIZE_LIMIT, 10). 
 
-% FoundationDB can only be intiailized once
-% in a given OS process.
-new_queue(ClusterFile, QueueName) -> 
-    Db = erlfdb:open(ClusterFile),
-    {Db, QueueName}.
 insert_by_index(DbOrTx, QueueName, Value, Index) ->
     if
         byte_size(Value) > ?FDB_SIZE_LIMIT ->
@@ -43,6 +36,7 @@ insert(Queue, Value) ->
                 insert_by_index(Tx, QueueName, Value, LastIndex+1)
             end)
     end.
+    
 batch_insert(Queue, Values) when is_list(Values) ->
     case Queue of
         {Db, QueueName} ->
