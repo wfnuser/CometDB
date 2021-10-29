@@ -67,6 +67,9 @@ delete(QueueName, Key) ->
 range_delete(QueueName, Start, End) ->
     gen_server:call(?MODULE, {range_delete, QueueName, Start, End}).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% gen_server callbacks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 handle_call({new_queue, QueueName}, _From, Db) -> 
     {reply, comet_queue:new_queue(QueueName, Db), Db};
 
