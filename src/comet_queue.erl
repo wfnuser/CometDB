@@ -5,7 +5,7 @@
         , fetch/2 
         , delete/2
         , range_delete/3
-]).
+        ]).
 
 % FDB_SIZE_LIMIT is 100,000 bytes
 -define(FDB_SIZE_LIMIT, 10). 
@@ -87,12 +87,12 @@ fetch(Queue, N) ->
             ))
     end.
 
-
 delete(Queue, Key) ->
     case Queue of
         {Db, QueueName} -> 
             erlfdb:clear(Db, erlfdb_tuple:pack({Key}, QueueName))
     end.
+
 range_delete(Queue, Start, End) ->
     case Queue of
         {Db, QueueName} -> 

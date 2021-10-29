@@ -8,6 +8,5 @@ split_packet(Size, P) when byte_size(P) >= Size ->
 
 split_packet(_Size, <<>>) ->
     [];
-
 split_packet(_Size, P)  ->
     [P].
