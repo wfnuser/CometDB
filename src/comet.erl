@@ -44,6 +44,7 @@ start_link() ->
 % FoundationDB can only be intiailized once
 % in a given OS process.
 init([ClusterFile]) -> 
+    process_flag(trap_exit, true),
     Db = erlfdb:open(ClusterFile),
     {ok, Db}.
 
