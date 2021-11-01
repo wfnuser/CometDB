@@ -7,7 +7,6 @@
 -export([ start/0
         , start/1
         , stop/0
-        , new_queue/2
         , insert/3
         , batch_insert/3
         , fetch_one/2
@@ -43,37 +42,39 @@ start_link() ->
 
 % FoundationDB can only be intiailized once
 % in a given OS process.
+-spec init([comet_types:cluster_file()]) -> {ok, any()}.
 init([ClusterFile]) -> 
     process_flag(trap_exit, true),
     Db = erlfdb:open(ClusterFile),
     {ok, Db}.
 
-new_queue(Pid, QueueName) ->
-    gen_server:call(Pid, {new_queue, QueueName}).
-
+-spec insert(pid(), comet_types:comet_queue_name(), comet_types:comet_kv()) -> ok.
 insert(Pid, QueueName, Value) ->    
     gen_server:call(Pid, {insert, QueueName, Value}).
 
+-spec batch_insert(pid(), comet_types:comet_queue_name(), list(comet_types:comet_kv())) -> ok.
 batch_insert(Pid, QueueName, Values) ->
     gen_server:call(Pid, {batch_insert, QueueName, Values}).
 
+-spec fetch_one(pid(), comet_types:comet_queue_name()) -> list({integer, comet_types:comet_kv()}).
 fetch_one(Pid, QueueName) ->
     gen_server:call(Pid, {fetch_one, QueueName}).
 
+-spec fetch(pid(), comet_types:comet_queue_name(), integer()) -> list({integer, comet_types:comet_kv()}).
 fetch(Pid, QueueName, N) ->
     gen_server:call(Pid, {fetch, QueueName, N}).
 
+-spec delete(pid(), comet_types:comet_queue_name(), integer()) -> ok.
 delete(Pid, QueueName, Key) ->
     gen_server:call(Pid, {delete, QueueName, Key}).
 
+-spec range_delete(pid(), comet_types:comet_queue_name(), integer(), integer()) -> ok.
 range_delete(Pid, QueueName, Start, End) ->
     gen_server:call(Pid, {range_delete, QueueName, Start, End}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% gen_server callbacks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-handle_call({new_queue, QueueName}, _From, Db) -> 
-    {reply, comet_queue:new_queue(QueueName, Db), Db};
 handle_call({insert, QueueName, Value}, _From, Db) -> 
     {reply, comet_queue:insert({Db, QueueName}, Value), Db};
 handle_call({batch_insert, QueueName, Values}, _From, Db) -> 
