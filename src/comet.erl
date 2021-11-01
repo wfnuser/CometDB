@@ -7,13 +7,13 @@
 -export([ start/0
         , start/1
         , stop/0
-        , new_queue/1
-        , insert/2
-        , batch_insert/2
-        , fetch_one/1
-        , fetch/2
-        , delete/2
-        , range_delete/3
+        , new_queue/2
+        , insert/3
+        , batch_insert/3
+        , fetch_one/2
+        , fetch/3
+        , delete/3
+        , range_delete/4
         ]).
 
 %% gen_server callbacks:
@@ -33,13 +33,13 @@ start() ->
     start(<<>>).
 
 start(ClusterFile) -> 
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [ClusterFile], []).
+    gen_server:start_link(?MODULE, [ClusterFile], []).
 
 stop() -> 
     gen_server:call(?MODULE, stop).
 
 start_link() -> 
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link(?MODULE, [], []).
 
 % FoundationDB can only be intiailized once
 % in a given OS process.
@@ -48,26 +48,26 @@ init([ClusterFile]) ->
     Db = erlfdb:open(ClusterFile),
     {ok, Db}.
 
-new_queue(QueueName) ->
-    gen_server:call(?MODULE, {new_queue, QueueName}).
+new_queue(Pid, QueueName) ->
+    gen_server:call(Pid, {new_queue, QueueName}).
 
-insert(QueueName, Value) ->    
-    gen_server:call(?MODULE, {insert, QueueName, Value}).
+insert(Pid, QueueName, Value) ->    
+    gen_server:call(Pid, {insert, QueueName, Value}).
 
-batch_insert(QueueName, Values) ->
-    gen_server:call(?MODULE, {batch_insert, QueueName, Values}).
+batch_insert(Pid, QueueName, Values) ->
+    gen_server:call(Pid, {batch_insert, QueueName, Values}).
 
-fetch_one(QueueName) ->
-    gen_server:call(?MODULE, {fetch_one, QueueName}).
+fetch_one(Pid, QueueName) ->
+    gen_server:call(Pid, {fetch_one, QueueName}).
 
-fetch(QueueName, N) ->
-    gen_server:call(?MODULE, {fetch, QueueName, N}).
+fetch(Pid, QueueName, N) ->
+    gen_server:call(Pid, {fetch, QueueName, N}).
 
-delete(QueueName, Key) ->
-    gen_server:call(?MODULE, {delete, QueueName, Key}).
+delete(Pid, QueueName, Key) ->
+    gen_server:call(Pid, {delete, QueueName, Key}).
 
-range_delete(QueueName, Start, End) ->
-    gen_server:call(?MODULE, {range_delete, QueueName, Start, End}).
+range_delete(Pid, QueueName, Start, End) ->
+    gen_server:call(Pid, {range_delete, QueueName, Start, End}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% gen_server callbacks
