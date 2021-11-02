@@ -13,6 +13,7 @@
         , fetch/3
         , delete/3
         , range_delete/4
+        , get_state/1
         ]).
 
 %% gen_server callbacks:
@@ -40,6 +41,14 @@ stop() ->
 start_link() -> 
     gen_server:start_link(?MODULE, [], []).
 
+handle_cast(_Msg, Db) -> 
+    {noreply, Db}.
+
+handle_info(_Info, Db) -> 
+    {noreply, Db}.
+
+terminate(_Reason, _Db) -> ok.
+
 % FoundationDB can only be intiailized once
 % in a given OS process.
 -spec init([comet_types:cluster_file()]) -> {ok, any()}.
@@ -50,48 +59,48 @@ init([ClusterFile]) ->
 
 -spec insert(comet_types:comet_pid(), comet_types:comet_queue_name(), comet_types:comet_kv()) -> ok.
 insert(Pid, QueueName, Value) ->    
-    gen_server:call(Pid, {insert, QueueName, Value}).
+    gen_server:call(Pid, {insert, get_state(Pid), QueueName, Value}).
 
 -spec batch_insert(comet_types:comet_pid(), comet_types:comet_queue_name(), list(comet_types:comet_kv())) -> ok.
 batch_insert(Pid, QueueName, Values) ->
-    gen_server:call(Pid, {batch_insert, QueueName, Values}).
+    gen_server:call(Pid, {batch_insert, get_state(Pid), QueueName, Values}).
 
 -spec fetch_one(comet_types:comet_pid(), comet_types:comet_queue_name()) -> list({integer, comet_types:comet_kv()}).
 fetch_one(Pid, QueueName) ->
-    gen_server:call(Pid, {fetch_one, QueueName}).
+    gen_server:call(Pid, {fetch_one, get_state(Pid), QueueName}).
 
 -spec fetch(comet_types:comet_pid(), comet_types:comet_queue_name(), integer()) -> list({integer, comet_types:comet_kv()}).
 fetch(Pid, QueueName, N) ->
-    gen_server:call(Pid, {fetch, QueueName, N}).
+    gen_server:call(Pid, {fetch, get_state(Pid), QueueName, N}).
 
 -spec delete(comet_types:comet_pid(), comet_types:comet_queue_name(), integer()) -> ok.
 delete(Pid, QueueName, Key) ->
-    gen_server:call(Pid, {delete, QueueName, Key}).
+    gen_server:call(Pid, {delete, get_state(Pid), QueueName, Key}).
 
 -spec range_delete(comet_types:comet_pid(), comet_types:comet_queue_name(), integer(), integer()) -> ok.
 range_delete(Pid, QueueName, Start, End) ->
-    gen_server:call(Pid, {range_delete, QueueName, Start, End}).
+    gen_server:call(Pid, {range_delete, get_state(Pid), QueueName, Start, End}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% gen_server callbacks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-handle_call({insert, QueueName, Value}, _From, Db) -> 
-    {reply, comet_queue:insert({Db, QueueName}, Value), Db};
-handle_call({batch_insert, QueueName, Values}, _From, Db) -> 
-    {reply, comet_queue:batch_insert({Db, QueueName}, Values), Db};
-handle_call({fetch_one, QueueName}, _From, Db) -> 
-    {reply, comet_queue:fetch({Db, QueueName}, 1), Db};
-handle_call({fetch, QueueName, N}, _From, Db) -> 
-    {reply, comet_queue:fetch({Db, QueueName}, N), Db};
-handle_call({delete, QueueName, Key}, _From, Db) -> 
-    {reply, comet_queue:delete({Db, QueueName}, Key), Db};
-handle_call({range_delete, QueueName, Start, End}, _From, Db) -> 
-    {reply, comet_queue:range_delete({Db, QueueName}, Start, End), Db}.
+handle_call(get_state, _From, Db) -> 
+    {reply, Db, Db};
+handle_call({insert, Conn, QueueName, Value}, _From, Db) -> 
+    {reply, comet_queue:insert({Conn, QueueName}, Value), Db};
+handle_call({batch_insert, Conn, QueueName, Values}, _From, Db) -> 
+    {reply, comet_queue:batch_insert({Conn, QueueName}, Values), Db};
+handle_call({fetch_one, Conn, QueueName}, _From, Db) -> 
+    {reply, comet_queue:fetch({Conn, QueueName}, 1), Db};
+handle_call({fetch, Conn, QueueName, N}, _From, Db) -> 
+    {reply, comet_queue:fetch({Conn, QueueName}, N), Db};
+handle_call({delete, Conn, QueueName, Key}, _From, Db) -> 
+    {reply, comet_queue:delete({Conn, QueueName}, Key), Db};
+handle_call({range_delete, Conn, QueueName, Start, End}, _From, Db) -> 
+    {reply, comet_queue:range_delete({Conn, QueueName}, Start, End), Db}.
 
-handle_cast(_Msg, Db) -> 
-    {noreply, Db}.
-
-handle_info(_Info, Db) -> 
-    {noreply, Db}.
-
-terminate(_Reason, _Db) -> ok.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% internal functions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+get_state(Pid) ->
+  gen_server:call(Pid, get_state).
