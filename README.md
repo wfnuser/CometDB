@@ -15,13 +15,14 @@ We need to setup the FDB environment first. You can find details in [FoundationD
 
 Then the use is really simple.
 The basic API usages are as following:
-```
-Q = new_queue(<<>>, <<"testq">>). # create a queue entity; the first parameter is the cluster file of foundationdb.
-insert(Q, <<"testvalue_1">>). # the system will always generate an sequence number for items we insert in each time
-batch_insert(Q, [<<"testvalue_2">>, <<"testvalue_3">>, <<"testvalue_4">>]).
-fetch(Q, 5).
+```erlang
 
-delete(Q, <<"xxxx_as_the_id_which_will_return_by_insert_or_fetch">>).
+P = comet:start().
+comet:insert(P, <<"testq">>, <<"testvalue">>).
+comet:batch_insert(P, <<"testq">>, [<<"testvalue_2">>, <<"testvalue_3">>, <<"testvalue_4">>]).
+comet:fetch(P, <<"testq">>, 100).
+comet:delete(P, <<"testq">>, 1).
+
 ```
 
 ## TODO
