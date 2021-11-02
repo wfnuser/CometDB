@@ -1,0 +1,4 @@
+[{<<"erlfdb">>,
+  {git,"git://github.com/apache/couchdb-erlfdb.git",
+       {ref,"23599af04ea7b5e96c4444426acf692348794308"}},
+  0}].
