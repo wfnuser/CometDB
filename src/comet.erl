@@ -58,46 +58,40 @@ init([ClusterFile]) ->
     {ok, Db}.
 
 -spec insert(comet_types:comet_pid(), comet_types:comet_queue_name(), comet_types:comet_kv()) -> ok.
-insert(Pid, QueueName, Value) ->    
-    gen_server:call(Pid, {insert, get_state(Pid), QueueName, Value}).
+insert(Pid, QueueName, Value) ->
+    Db = get_state(Pid),
+    comet_queue:insert({Db, QueueName}, Value).
 
 -spec batch_insert(comet_types:comet_pid(), comet_types:comet_queue_name(), list(comet_types:comet_kv())) -> ok.
 batch_insert(Pid, QueueName, Values) ->
-    gen_server:call(Pid, {batch_insert, get_state(Pid), QueueName, Values}).
+    Db = get_state(Pid),
+    comet_queue:batch_insert({Db, QueueName}, Values).
 
 -spec fetch_one(comet_types:comet_pid(), comet_types:comet_queue_name()) -> list({integer, comet_types:comet_kv()}).
 fetch_one(Pid, QueueName) ->
-    gen_server:call(Pid, {fetch_one, get_state(Pid), QueueName}).
+    Db = get_state(Pid),
+    comet_queue:fetch_one({Db, QueueName}).
 
 -spec fetch(comet_types:comet_pid(), comet_types:comet_queue_name(), integer()) -> list({integer, comet_types:comet_kv()}).
 fetch(Pid, QueueName, N) ->
-    gen_server:call(Pid, {fetch, get_state(Pid), QueueName, N}).
+    Db = get_state(Pid),
+    comet_queue:fetch({Db, QueueName}, N).
 
 -spec delete(comet_types:comet_pid(), comet_types:comet_queue_name(), integer()) -> ok.
 delete(Pid, QueueName, Key) ->
-    gen_server:call(Pid, {delete, get_state(Pid), QueueName, Key}).
+    Db = get_state(Pid),
+    comet_queue:delete({Db, QueueName}, Key).
 
 -spec range_delete(comet_types:comet_pid(), comet_types:comet_queue_name(), integer(), integer()) -> ok.
 range_delete(Pid, QueueName, Start, End) ->
-    gen_server:call(Pid, {range_delete, get_state(Pid), QueueName, Start, End}).
+    Db = get_state(Pid),
+    comet_queue:range_delete({Db, QueueName}, Start, End).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% gen_server callbacks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 handle_call(get_state, _From, Db) -> 
-    {reply, Db, Db};
-handle_call({insert, Conn, QueueName, Value}, _From, Db) -> 
-    {reply, comet_queue:insert({Conn, QueueName}, Value), Db};
-handle_call({batch_insert, Conn, QueueName, Values}, _From, Db) -> 
-    {reply, comet_queue:batch_insert({Conn, QueueName}, Values), Db};
-handle_call({fetch_one, Conn, QueueName}, _From, Db) -> 
-    {reply, comet_queue:fetch({Conn, QueueName}, 1), Db};
-handle_call({fetch, Conn, QueueName, N}, _From, Db) -> 
-    {reply, comet_queue:fetch({Conn, QueueName}, N), Db};
-handle_call({delete, Conn, QueueName, Key}, _From, Db) -> 
-    {reply, comet_queue:delete({Conn, QueueName}, Key), Db};
-handle_call({range_delete, Conn, QueueName, Start, End}, _From, Db) -> 
-    {reply, comet_queue:range_delete({Conn, QueueName}, Start, End), Db}.
+    {reply, Db, Db}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% internal functions

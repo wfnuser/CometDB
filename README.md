@@ -13,8 +13,8 @@ This project aims to provide you a set of simple interfaces so that you can use 
 ## How to use
 We need to setup the FDB environment first. You can find details in [FoundationDB official website](https://apple.github.io/foundationdb/getting-started-linux.html).
 
-Then the use is really simple.
-The basic API usages are as following:
+The usage is really simple.
+Here is an example:
 ```erlang
 
 P = comet:start().
