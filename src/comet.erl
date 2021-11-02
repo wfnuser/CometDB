@@ -48,27 +48,27 @@ init([ClusterFile]) ->
     Db = erlfdb:open(ClusterFile),
     {ok, Db}.
 
--spec insert(pid(), comet_types:comet_queue_name(), comet_types:comet_kv()) -> ok.
+-spec insert(comet_types:comet_pid(), comet_types:comet_queue_name(), comet_types:comet_kv()) -> ok.
 insert(Pid, QueueName, Value) ->    
     gen_server:call(Pid, {insert, QueueName, Value}).
 
--spec batch_insert(pid(), comet_types:comet_queue_name(), list(comet_types:comet_kv())) -> ok.
+-spec batch_insert(comet_types:comet_pid(), comet_types:comet_queue_name(), list(comet_types:comet_kv())) -> ok.
 batch_insert(Pid, QueueName, Values) ->
     gen_server:call(Pid, {batch_insert, QueueName, Values}).
 
--spec fetch_one(pid(), comet_types:comet_queue_name()) -> list({integer, comet_types:comet_kv()}).
+-spec fetch_one(comet_types:comet_pid(), comet_types:comet_queue_name()) -> list({integer, comet_types:comet_kv()}).
 fetch_one(Pid, QueueName) ->
     gen_server:call(Pid, {fetch_one, QueueName}).
 
--spec fetch(pid(), comet_types:comet_queue_name(), integer()) -> list({integer, comet_types:comet_kv()}).
+-spec fetch(comet_types:comet_pid(), comet_types:comet_queue_name(), integer()) -> list({integer, comet_types:comet_kv()}).
 fetch(Pid, QueueName, N) ->
     gen_server:call(Pid, {fetch, QueueName, N}).
 
--spec delete(pid(), comet_types:comet_queue_name(), integer()) -> ok.
+-spec delete(comet_types:comet_pid(), comet_types:comet_queue_name(), integer()) -> ok.
 delete(Pid, QueueName, Key) ->
     gen_server:call(Pid, {delete, QueueName, Key}).
 
--spec range_delete(pid(), comet_types:comet_queue_name(), integer(), integer()) -> ok.
+-spec range_delete(comet_types:comet_pid(), comet_types:comet_queue_name(), integer(), integer()) -> ok.
 range_delete(Pid, QueueName, Start, End) ->
     gen_server:call(Pid, {range_delete, QueueName, Start, End}).
 
